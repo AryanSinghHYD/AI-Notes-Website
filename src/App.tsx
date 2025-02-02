@@ -93,7 +93,7 @@ function App() {
         {/* Settings Button */}
         <button
           onClick={() => setShowApiKeyModal(true)}
-          className="fixed top-4 left-4 p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow duration-200 z-40"
+          className="fixed bottom-4 left-4 p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow duration-200 z-40"
           title="Change API Key"
         >
           <Settings className="w-5 h-5 text-gray-600" />
