@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Dashboard } from './pages/Dashboard';
+import { Dashboard } from './public/Dashboard';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { loadState, saveState } from './utils/storage';
 import { analyzeNote } from './utils/gemini';
@@ -78,7 +78,7 @@ function App() {
               />
             } 
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/Dashboard" replace />} />
         </Routes>
       </div>
     </Router>
