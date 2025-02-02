@@ -7,6 +7,8 @@ export interface Note {
   aiCategories?: string[];
   dueDate?: Date;
   completed?: boolean;
+  venue?: string;
+  author?: string;
 }
 
 export interface AppState {

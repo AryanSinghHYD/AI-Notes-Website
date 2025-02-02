@@ -26,7 +26,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return (
       note.content.toLowerCase().includes(searchLower) ||
       note.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
-      note.aiSummary?.toLowerCase().includes(searchLower)
+      note.aiSummary?.toLowerCase().includes(searchLower) ||
+      note.venue?.toLowerCase().includes(searchLower) ||
+      note.author?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -94,7 +96,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <textarea
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
-              placeholder="What's on your mind?"
+              placeholder="What's on your mind? Try typing 'meeting tomorrow at 6 PM'"
               className="w-full p-4 bg-gray-50 border-none rounded-2xl resize-none h-40 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-shadow duration-200"
               autoFocus
             />
@@ -117,6 +119,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
             note={note} 
             onDelete={onDeleteNote}
             onComplete={onCompleteNote}
+            isHighlighted={searchQuery && (
+              note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              note.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+              note.aiSummary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              note.venue?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              note.author?.toLowerCase().includes(searchQuery.toLowerCase())
+            )}
           />
         ))}
       </div>

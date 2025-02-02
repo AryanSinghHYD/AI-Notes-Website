@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Clock, Tag, Bell, Check, Trash2, AlertTriangle } from 'lucide-react';
+import { Clock, Tag, Bell, Check, Trash2, AlertTriangle, MapPin, User } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Note } from '../types';
 
@@ -7,11 +7,18 @@ interface NoteCardProps {
   note: Note;
   onDelete: (id: string) => void;
   onComplete: (id: string) => void;
+  isHighlighted?: boolean;
 }
 
-export const NoteCard: React.FC<NoteCardProps> = ({ note, onDelete, onComplete }) => {
+export const NoteCard: React.FC<NoteCardProps> = ({ 
+  note, 
+  onDelete, 
+  onComplete,
+  isHighlighted = false
+}) => {
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [exactCountdown, setExactCountdown] = useState<string>('');
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     if (!note.dueDate) return;
@@ -20,16 +27,20 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, onDelete, onComplete }
       const now = new Date();
       const due = new Date(note.dueDate!);
       
-      if (now >= due) {
+      // Convert to user's timezone if available
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const dueInUserTz = userTimezone ? due : new Date(due.getTime() + (5.5 * 60 * 60 * 1000)); // Add 5:30 hours if timezone not detected
+      
+      if (now >= dueInUserTz) {
         setTimeLeft('Due now!');
         setExactCountdown('');
         return;
       }
 
-      const distance = formatDistanceToNow(due, { addSuffix: true });
+      const distance = formatDistanceToNow(dueInUserTz, { addSuffix: true });
       setTimeLeft(distance);
 
-      const diffMs = due.getTime() - now.getTime();
+      const diffMs = dueInUserTz.getTime() - now.getTime();
       const minutesLeft = diffMs / (1000 * 60);
       
       if (minutesLeft <= 15) {
@@ -60,17 +71,37 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, onDelete, onComplete }
     }
   }, []);
 
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    // Use the user's timezone if available, otherwise use IST format
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (userTimezone) {
+      return format(date, 'PPp');
+    } else {
+      // Format in IST
+      const istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
+      return format(istDate, 'PPp') + ' IST';
+    }
+  };
+
   return (
-    <div className={`group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-5 ${
-      note.completed ? 'opacity-75' : ''
-    }`}>
+    <div 
+      className={`group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-5 cursor-pointer
+        ${note.completed ? 'opacity-75' : ''}
+        ${isHighlighted ? 'ring-2 ring-blue-500 shadow-lg' : ''}
+      `}
+      onClick={() => setShowDetails(!showDetails)}
+    >
       <div className="flex justify-between items-start mb-3">
         <p className={`text-gray-800 ${note.completed ? 'line-through' : ''}`}>
           {note.content}
         </p>
         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
-            onClick={() => onComplete(note.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onComplete(note.id);
+            }}
             className={`p-2 rounded-full transition-all duration-200 active:scale-95 ${
               note.completed 
                 ? 'bg-green-100 text-green-600 hover:bg-green-200' 
@@ -80,7 +111,10 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, onDelete, onComplete }
             <Check className="w-4 h-4" />
           </button>
           <button
-            onClick={() => onDelete(note.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(note.id);
+            }}
             className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-all duration-200 active:scale-95"
           >
             <Trash2 className="w-4 h-4" />
@@ -92,10 +126,34 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, onDelete, onComplete }
           {note.aiSummary}
         </div>
       )}
-      <div className="flex items-center justify-between text-sm text-gray-500">
+
+      {/* Event Details */}
+      {showDetails && note.dueDate && (
+        <div className="mt-4 p-4 bg-gray-50 rounded-xl space-y-2">
+          <h3 className="font-semibold text-gray-800 mb-3">Event Details</h3>
+          <div className="flex items-center gap-2 text-gray-600">
+            <Clock className="w-4 h-4" />
+            <span>Time: {formatTimestamp(note.dueDate.toString())}</span>
+          </div>
+          {note.venue && (
+            <div className="flex items-center gap-2 text-gray-600">
+              <MapPin className="w-4 h-4" />
+              <span>Venue: {note.venue}</span>
+            </div>
+          )}
+          {note.author && (
+            <div className="flex items-center gap-2 text-gray-600">
+              <User className="w-4 h-4" />
+              <span>Organizer: {note.author}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="flex items-center justify-between text-sm text-gray-500 mt-3">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4" />
-          <span>{format(new Date(note.timestamp), 'PPp')}</span>
+          <span>{formatTimestamp(note.timestamp)}</span>
         </div>
         {(timeLeft || exactCountdown) && (
           <div className="flex items-center gap-2">
