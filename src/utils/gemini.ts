@@ -18,7 +18,7 @@ export const analyzeNote = async (content: string, apiKey: string): Promise<{
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `Analyze this note and provide:
 1. A one-line summary (max 50 characters)
